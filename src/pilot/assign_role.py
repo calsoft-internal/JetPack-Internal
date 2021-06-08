@@ -355,7 +355,7 @@ def define_controller_logical_disks(drac_client, raid_controllers):
 def define_compute_logical_disks(drac_client, raid_controllers):
     all_physical_disks = drac_client.list_physical_disks()
 
-    # Get the drives controlled by the RAID controller
+    # Get the drives controlled by the RAID controllers
     raid_cntlr_physical_disks = {}
     for disk in all_physical_disks:
         if disk.controller in raid_controllers:

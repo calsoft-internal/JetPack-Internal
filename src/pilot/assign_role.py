@@ -260,11 +260,11 @@ def define_target_raid_config(super_role, drac_client):
         return None
 
     if super_role == 'controller':
-        logical_disks = _define_controller_or_compute_logical_disks(drac_client,
-                                                                    raid_controller_ids)
+        logical_disks = define_controller_logical_disks(drac_client,
+                                                        raid_controller_ids)
     elif super_role == 'compute':
-        logical_disks = _define_controller_or_compute_logical_disks(drac_client,
-                                                                    raid_controller_ids)
+        logical_disks = define_compute_logical_disks(drac_client,
+                                                     raid_controller_ids)
     elif super_role == 'storage':
         logical_disks = define_storage_logical_disks(drac_client,
                                                      raid_controller_ids)
@@ -294,6 +294,16 @@ def get_raid_controller_ids(drac_client):
             raid_controller_ids.append(cnt.id)
 
     return raid_controller_ids
+
+
+def define_controller_logical_disks(drac_client, raid_controller_ids):
+    return _define_controller_or_compute_logical_disks(drac_client,
+                                                       raid_controller_ids)
+
+
+def define_compute_logical_disks(drac_client, raid_controller_ids):
+    return _define_controller_or_compute_logical_disks(drac_client,
+                                                       raid_controller_ids)
 
 
 def _define_controller_or_compute_logical_disks(drac_client, raid_controller_ids):
@@ -330,7 +340,8 @@ def _define_controller_or_compute_logical_disks(drac_client, raid_controller_ids
     return logical_disks
 
 
-def define_single_raid_10_logical_disk(drac_client, raid_controller_name, is_root_volume):
+def define_single_raid_10_logical_disk(drac_client, raid_controller_name,
+                                       is_root_volume=True):
     physical_disk_names = get_raid_controller_physical_disk_ids(
         drac_client, raid_controller_name)
 

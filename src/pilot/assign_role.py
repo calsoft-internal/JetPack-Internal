@@ -314,11 +314,9 @@ def _define_controller_or_compute_logical_disks(drac_client, raid_controller_ids
         if disk.controller in raid_controller_ids:
             raid_cntlr_physical_disks[disk.controller].append(disk)
 
-    is_root_volume=True
     logical_disks = []
     boss_controller = _fetch_boss_controller(drac_client, raid_controller_ids)
     if boss_controller:
-        is_root_volume=False
         if check_cntlr_physical_disks_len(
            raid_cntlr_physical_disks[boss_controller]):
             boss_os_logical_disk = define_operating_system_logical_disk(
@@ -330,18 +328,25 @@ def _define_controller_or_compute_logical_disks(drac_client, raid_controller_ids
                          "2 SSDs are needed to configure a RAID 1")
             return None
 
-    raid_10_logical_disk = define_single_raid_10_logical_disk(
-        drac_client, raid_controller_ids[0], is_root_volume)
+    raid_cntrl_id = [cntrl for cntrl in raid_controller_ids
+                       if not drac_client.is_boss_controller(cntrl)]
 
+    if raid_cntrl_id:
+        raid_10_logical_disk = define_single_raid_10_logical_disk(
+            drac_client, raid_cntrl_id[0], not boss_controller)
 
-    if raid_10_logical_disk:
-        logical_disks.append(raid_10_logical_disk)
+        # None indicates an error occurred.
+        if raid_10_logical_disk is None:
+            return None
+
+        if raid_10_logical_disk:
+            logical_disks.append(raid_10_logical_disk)
 
     return logical_disks
 
 
 def define_single_raid_10_logical_disk(drac_client, raid_controller_name,
-                                       is_root_volume=True):
+                                       is_root_volume):
     physical_disk_names = get_raid_controller_physical_disk_ids(
         drac_client, raid_controller_name)
 
